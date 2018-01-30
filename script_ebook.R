@@ -1,17 +1,15 @@
 ##################################################################################################
 #Script para descargar informacion del INEGI con la APP de INEGI en R y luego hacer las graficas##
 #Para el ebook####################################################################################
-
-prueba <- "regex not"
-
-
 #### Primero subes los paquetes que necesitas
 
 
 library(easypackages)
-my_packages <- c("tidyverse", "readxl", "lubridate")
+my_packages <- c("tidyverse", "readxl", "lubridate", "extrafont")
 libraries(my_packages)
-
+loadfonts()
+Sys.setenv(R_GSCMD = "C:/Program Files/gs/gs9.22/bin/gswin64c.exe")
+# Hacemos la paleta de colores
 # Luego jalas las series de datos que necesitas
 
 BIE_BIE20180126152150 <- read_excel("C:/Users/pvelazquez/Google Drive/Sector Industrial en Tijuana/Bases de datos/INDICADORES_ECONOMICOS_DE_COYUNTURA/BIE_BIE20180126152150.xlsx", 
@@ -34,42 +32,25 @@ datos <- BIE_BIE20180126152150 %>%
   mutate(fecha = as_date(paste0(year, month, day)))
 
 
+
+p <- datos %>%
+  ggplot(aes(fecha, constr_calend)) +
+  geom_line(colour = "#4f2584") + 
+  theme(text = element_text(family = "Impact", size = 9)) +
+  theme_minimal() +
+  ggtitle("Este es el título")
+
+ ggsave("ggplot_garamond.jpg", plot = p, width = 4, height=4)
+embed_fonts("ggplot_garamond.jpg") 
+ 
+ 
 datos %>%
-  ggplot(aes(fecha, constr_calend)) + geom_line() + geom_smooth()
-
-
-
-nombres <- data_frame(colnames(BIE_BIE20180126152150), line = 1:191) 
-
-
-namb <- nombres %>% 
-  rename("columna" = "colnames(BIE_BIE20180126152150)") %>%
-  separate(columna, into = c("uno", "dos", "tres", "cuatro"), sep = "\\>") %>%
-  mutate(cuatro = if_else(is.na(cuatro), tres, cuatro),
-         cinco = if_else(is.na(cuatro), uno, cuatro)) %>%
-  select(cinco) 
-
-nombres$columna <- if_else(is.na(nombres$cuatro), nombres$tres, nombres$cuatro) 
-
-nombres$columna <- if_else(is.na(nombres$columna),nombres$uno, nombres$columna)
-
-
-nombres <- nombres %>%
-  select(columna)
-
-
-
-
-datos <- BIE_BIE20180126152150 %>%
-  select(Periodo ,
-         `Proyectos especiales > Tablero de indicadores económicos > Indicadores de producción > Indicador global de la actividad económica Original r1 / p1 / f2/ (Índice base 2013=100)`         ) %>%
-  rename(., 
-         "IGAE" = `Proyectos especiales > Tablero de indicadores económicos > Indicadores de producción > Indicador global de la actividad económica Original r1 / p1 / f2/ (Índice base 2013=100)`) %>%
-  filter(!is.na(IGAE)) %>%
-  separate(Periodo,into = c("year", "month"), sep = "\\/") %>%
-  mutate(day = "01",
-         fecha = as_date(paste0(year, month, day))) %>%
-  filter(fecha > "2006-12-01")
+  ggplot(aes(fecha, constr_calend)) + 
+  geom_line(colour  = "#862884") + 
+  geom_smooth(colour = "#6ebe4c") +
+  xlab(label = NULL) + 
+  ylab(label = "Índice") +
+  theme_minimal()
 
 datos %>%
   mutate(avg = caTools::runmin(IGAE, k = 1) ) %>%
