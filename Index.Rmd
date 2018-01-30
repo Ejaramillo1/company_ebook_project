@@ -1,0 +1,64 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+
+library(easypackages)
+my_packages <- c("tidyverse", "readxl", "lubridate")
+libraries(my_packages)
+
+
+BIE_BIE20180126152150 <- read_excel("C:/Users/pvelazquez/Google Drive/Sector Industrial en Tijuana/Bases de datos/INDICADORES_ECONOMICOS_DE_COYUNTURA/BIE_BIE20180126152150.xlsx", 
+                                    col_names = TRUE, skip = 1) %>%
+  filter(!is.na(.[,2]))
+
+
+datos <- BIE_BIE20180126152150 %>%
+  rename_all(funs(str_to_lower(.) %>%
+                    str_replace(., "proyectos especiales > tablero de indicadores económicos > ", ""))) %>%
+  select(contains("construcción")) %>%
+  rename( "constr_orig" = "indicadores de producción > índice de volumen físico de la construcción original p2 / f2/ (índice base 2013=100)", 
+          "constr_calend" = "indicadores de producción > índice de volumen físico de la construcción original corregida por efectos de calendario f3/ (índice base 2013=100)", 
+          "constr_esta" = "indicadores de producción > índice de volumen físico de la construcción desestacionalizada f3/ (índice base 2013=100)", 
+          "constr_trend" = "indicadores de producción > índice de volumen físico de la construcción tendencia f3/ (índice base 2013=100)", 
+          "constr_cicl" = "indicadores de producción > índice de volumen físico de la construcción ciclo f3/ (puntos)") %>%
+  mutate(periodo = BIE_BIE20180126152150$Periodo,
+         day = "01") %>%
+  separate(periodo, into = c("year", "month"), sep = "\\/") %>%
+  mutate(fecha = as_date(paste0(year, month, day)))
+
+
+
+```
+
+
+# EBOOK ATISA
+## Indicadores económicos de coyuntura (México)
+
+
+
+```{r fig.height=3, fig.width=5}
+
+datos %>%
+  ggplot(aes(fecha, constr_calend)) + 
+  geom_line(colour = "#4f2584") + 
+  geom_smooth(method = "loess") +
+  theme_minimal() + 
+  ggtitle("Índice del volumen físico de la construcción") +
+  xlab(label = NULL) +
+  ylab(label = "Índice") + 
+  theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 9)) +
+  theme(axis.title = element_text(family = "mono", color = "#666666", size = 7))
+  
+```
+
+```{r}
+
+
+```
+

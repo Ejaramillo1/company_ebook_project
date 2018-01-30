@@ -31,17 +31,17 @@ datos <- BIE_BIE20180126152150 %>%
   separate(periodo, into = c("year", "month"), sep = "\\/") %>%
   mutate(fecha = as_date(paste0(year, month, day)))
 
-
+# Grafica del indice de volumen fisico de la construccion
 
 p <- datos %>%
   ggplot(aes(fecha, constr_calend)) +
   geom_line(colour = "#4f2584") + 
-  theme(text = element_text(family = "Impact", size = 9)) +
+  theme(text = element_text(family = "Traditional Arabic", size = 9)) +
   theme_minimal() +
   ggtitle("Este es el título")
 
- ggsave("ggplot_garamond.jpg", plot = p, width = 13, height=9)
-embed_fonts("ggplot_garamond.jpg") 
+ ggsave("ggplot_garamond.pdf", plot = p, width = 11, height=9)
+embed_fonts("ggplot_garamond.pdf") 
  
  
 datos %>%
