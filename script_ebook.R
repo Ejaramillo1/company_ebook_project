@@ -40,7 +40,7 @@ p <- datos %>%
   theme_minimal() +
   ggtitle("Este es el título")
 
- ggsave("ggplot_garamond.jpg", plot = p, width = 4, height=4)
+ ggsave("ggplot_garamond.jpg", plot = p, width = 11, height=9)
 embed_fonts("ggplot_garamond.jpg") 
  
  
