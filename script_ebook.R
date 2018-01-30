@@ -96,5 +96,3 @@ nombres$columna <- if_else(is.na(nombres$cuatro), nombres$tres, nombres$cuatro)
 
 nombres$columna <- if_else(is.na(nombres$columna),nombres$uno, nombres$columna)
 
-# Haciendo cambios
-# Otro cambio
