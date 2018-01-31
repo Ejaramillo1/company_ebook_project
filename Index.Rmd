@@ -30,7 +30,25 @@ datos <- BIE_BIE20180126152150 %>%
   mutate(periodo = BIE_BIE20180126152150$Periodo,
          day = "01") %>%
   separate(periodo, into = c("year", "month"), sep = "\\/") %>%
-  mutate(fecha = as_date(paste0(year, month, day)))
+  mutate(fecha = as_date(paste0(year, month, day))) %>%
+  filter(fecha > "2007-01-01")
+
+
+datos2 <- BIE_BIE20180126152150 %>%
+  rename_all(funs(str_to_lower(.) %>%
+                    str_replace(., "proyectos especiales > tablero de indicadores económicos > ", ""))) %>%
+  select(contains("precios al consumidor")) %>%
+  rename("inpc" = "indicadores de precios precios al consumidor f6/ (base segunda quincena de diciembre 2010 = 100)",
+         "inpc_sub" = "indicadores de precios precios al consumidor subyacente f6/ (base segunda quincena de diciembre 2010 = 100)") %>%
+  mutate(periodo = BIE_BIE20180126152150$Periodo,
+         day = "01") %>%
+  separate(periodo, into = c("year", "month"), sep = "\\/") %>%
+  mutate(fecha = as_date(paste0(year, month, day)),
+         inflacion  = (inpc/lag(inpc, 1) -1)*100) %>%
+  filter(fecha > "2007-01-01")
+
+
+
 
 
 
@@ -40,25 +58,67 @@ datos <- BIE_BIE20180126152150 %>%
 # EBOOK ATISA
 ## Indicadores económicos de coyuntura (México)
 
+El comportamiento de los indicadores más relevantes para el sector de la construcción a nivel nacional tuvieron un comportamiento al a baja, el Indicador del volumen físico de la cosntrucción tuvo un comportamiento a la baja, tanto en su componente cíclico y tendencial. 
+
+Se observa así mismo que la inflación mensual medida a través del INPC(Índice Nacional de Precios al Consumidor) sigue una tendencia incremental. Principalmente en los meses de Octubre, Noviembre y Diciembre.
 
 
-```{r fig.height=3, fig.width=5}
+```{r fig.height=2, fig.width=3}
 
 datos %>%
   ggplot(aes(fecha, constr_calend)) + 
-  geom_line(colour = "#4f2584") + 
-  geom_smooth(method = "loess") +
+  geom_line(colour = "#4f2584", size = 0.2) + 
+  geom_smooth(method = "loess", size = 0.2) +
   theme_minimal() + 
   ggtitle("Índice del volumen físico de la construcción") +
   xlab(label = NULL) +
   ylab(label = "Índice") + 
-  theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 9)) +
-  theme(axis.title = element_text(family = "mono", color = "#666666", size = 7))
+  theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 5)) +
+  theme(axis.title = element_text(family = "mono", color = "#666666", size = 4), axis.text = element_text(size = 4))
   
 ```
 
-```{r}
+
+
+```{r fig.height=2, fig.width=3}
+
+datos %>% 
+  ggplot(aes(fecha, constr_cicl)) + 
+  geom_line(colour = "#4f2584", size = 0.2) +
+  geom_smooth(method = "loess", size = 0.2) +
+  theme_minimal() +
+  ggtitle("Índice de valor físico de la construcción") +
+  xlab(label = NULL) +
+  theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 5)) +
+  theme(axis.title = element_text(family = "mono", color = "#666666", size = 4)) + 
+  theme(axis.text = element_text(size = 4))
 
 
 ```
+
+
+```{r fig.height=2, fig.width=3}
+
+datos2 %>%
+  ggplot(aes(fecha, inflacion)) + 
+  geom_line(colour = "#4f2584", size = 0.2) + 
+  geom_smooth(method = "loess", size = 0.2) + 
+  theme_minimal() +
+  ggtitle("Inflación mensual") + 
+  xlab(label = NULL) + 
+  theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 5)) + 
+  theme(axis.title = element_text(family = "mono", color = "#666666", face = "bold", size = 4)) +
+  theme(axis.text = element_text(size = 4))
+
+
+```
+
+
+
+## Infraestructura comercial de México
+
+```{r}
+
+```
+
 

@@ -38,7 +38,7 @@ p <- datos %>%
   geom_line(colour = "#4f2584") + 
   theme(text = element_text(family = "Traditional Arabic", size = 9)) +
   theme_minimal() +
-  ggtitle("Este es el título")
+  ggtitle("Índice del volumen físico de la construcción")
 
  ggsave("ggplot_garamond.pdf", plot = p, width = 11, height=9)
 embed_fonts("ggplot_garamond.pdf") 
@@ -77,4 +77,34 @@ nombres$columna <- if_else(is.na(nombres$cuatro), nombres$tres, nombres$cuatro)
 
 nombres$columna <- if_else(is.na(nombres$columna),nombres$uno, nombres$columna)
 
-# otro cambio
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
