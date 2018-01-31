@@ -118,7 +118,23 @@ datos2 %>%
 ## Infraestructura comercial de México
 
 ```{r}
+doing_db <- read_excel("C:/Users/pvelazquez/Google Drive/Sector Industrial en Tijuana/Bases de datos/Doing_business_world_bank.xlsx", col_types = c("text", "text", "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",  "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "text",  "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "numeric", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "skip", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric","numeric", "numeric", "numeric"))
+```
 
+
+
+```{r}
+
+doing_db %>%
+  select("Starting a Business - Time - Men (days)", Economy) %>%
+  rename("dias" = "Starting a Business - Time - Men (days)") %>%
+  ggplot(aes(x = reorder(Economy, -dias), y = dias)) + 
+  geom_col(aes(fill = -dias)) + 
+  coord_flip() +
+  xlab(label = "Número de días") + 
+  ylab(label = "País") + 
+  ggtitle("Numero de días para abrir un negocio") +
+  theme_minimal()
 ```
 
 
