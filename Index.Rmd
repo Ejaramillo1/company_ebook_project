@@ -121,7 +121,7 @@ datos2 %>%
 doing_db <- read_excel("C:/Users/pvelazquez/Google Drive/Sector Industrial en Tijuana/Bases de datos/Doing_business_world_bank.xlsx", col_types = c("text", "text", "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",  "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "text",  "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "numeric", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "skip", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "skip", "numeric", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric","numeric", "numeric", "numeric"))
 ```
 
-
+### Número de días para abrir un negocio
 
 ```{r}
 
@@ -134,7 +134,91 @@ doing_db %>%
   xlab(label = "Número de días") + 
   ylab(label = "País") + 
   ggtitle("Numero de días para abrir un negocio") +
-  theme_minimal()
+  theme_minimal() + 
+  theme(legend.position = "none")
 ```
+
+```{r}
+
+
+propiedades_tijuana <- read_csv("propiedades_tijuana.csv", 
+    na = "null")
+
+
+propiedades_tijuana %>%
+  filter(!estado %in% c("construccion", "planeado")) %>% 
+  distinct() %>%
+  mutate(area_total = sum(espacio_disponible)) %>%
+  group_by(submercado) %>%
+  mutate(area_submercado = sum(espacio_disponible)) %>%
+  ungroup() %>%
+  mutate(percent = area_submercado / area_total, submercado) %>%
+  group_by(submercado, percent) %>%
+  summarise() %>%
+  ggplot(aes(x = reorder(submercado, -percent), y = percent)) + geom_col(aes(fill = -percent)) + 
+    coord_flip() +
+  ggtitle("Disponibilidad por submercado en Tijuana ft^2") +
+  ylab(label = NULL) +
+  xlab(label = "Sub-mercado") +
+  theme_minimal() + 
+  theme(legend.position = "none")
+
+
+```
+
+
+```{r}
+
+
+propiedades_tijuana %>%
+  filter(!estado %in% c("construccion", "planeado"), submercado %in% c("Insurgentes-El Aguila")) %>%
+  select(nombre, area_rentable_total, precio_de_arrendamiento, corretaje_representativo, clase) %>%
+  ggplot(aes(x = reorder(nombre, -area_rentable_total), y = area_rentable_total)) +
+  geom_col(aes(fill = -area_rentable_total)) + 
+  coord_flip() +
+  ggtitle("Naves disponibles en sub-mercado Insurgentes-El Aguila") + 
+  xlab(label = "Nombre de la Nave") +
+  ylab(label = "Tamaño en pies Cuadrados" ) + 
+  theme_minimal() + 
+  theme(legend.position = "none")
+
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
