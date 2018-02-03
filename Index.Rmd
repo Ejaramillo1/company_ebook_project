@@ -1,11 +1,11 @@
 ---
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 
 
 library(easypackages)
@@ -169,12 +169,11 @@ propiedades_tijuana %>%
 
 ```{r}
 
-
 propiedades_tijuana %>%
   filter(!estado %in% c("construccion", "planeado"), submercado %in% c("Insurgentes-El Aguila")) %>%
-  select(nombre, area_rentable_total, precio_de_arrendamiento, corretaje_representativo, clase) %>%
-  ggplot(aes(x = reorder(nombre, -area_rentable_total), y = area_rentable_total)) +
-  geom_col(aes(fill = -area_rentable_total)) + 
+  select(nombre, espacio_disponible, precio_de_arrendamiento, corretaje_representativo, clase) %>%
+  ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) +
+  geom_col(aes(fill = -espacio_disponible)) + 
   coord_flip() +
   ggtitle("Naves disponibles en sub-mercado Insurgentes-El Aguila") + 
   xlab(label = "Nombre de la Nave") +
@@ -182,24 +181,60 @@ propiedades_tijuana %>%
   theme_minimal() + 
   theme(legend.position = "none")
 
-
-
-
-
 ```
 
 
 
 ```{r}
 
-
+propiedades_tijuana %>%
+  filter(!estado %in% c("construccion", "planeado"), submercado %in% c("La Mesa-Via Rapida")) %>%
+  select(nombre, espacio_disponible, precio_de_arrendamiento, corretaje_representativo, clase) %>%
+  distinct() %>%
+  ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) + 
+  geom_col(aes(fill = -espacio_disponible)) + 
+  coord_flip() + 
+  ggtitle("Naves disponibles en sub-mercado La Mesa-Via Rápida") + 
+  scale_y_continuous(breaks = c(0, 15000 ,30000, 45000, 75000, 100000, 125000, 150000), labels = c("0", "15k", "30k", "45k", "75k", "100k", "125k", "150k")) + 
+  xlab(label = "Nombre de la nave") +
+  theme_minimal() + 
+  theme(legend.position = "none")
 
 ```
 
 
 
 
+```{r}
+propiedades_tijuana %>%
+  filter(!estado %in% c("construccion", "planeado"), submercado %in% c("El Florido-Boulevard 2000")) %>%
+  distinct() %>%
+  ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) + 
+  geom_col(aes(fill = -espacio_disponible)) +
+  coord_flip() + 
+  ggtitle("Naves disponibles en submrecado El florido-Boulevard 2000") + 
+  xlab(label = "Nombre de la nave") + 
+  scale_y_continuous(quote(ft ^ 2), labels = c("0", "50k", "100k", "150k", "200k")) +
+  theme_minimal() + 
+  theme(legend.position = "none")
 
+```
+
+```{r}
+propiedades_tijuana %>%
+  filter(!estado %in% c("construccion", "planeado")) %>%
+  distinct() %>%
+  ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) + 
+  geom_col(aes(fill = espacio_disponible)) + 
+  facet_grid(~submercado) + 
+  coord_flip() + 
+  ggtitle("Naves disponibles por submercado en Tijuana") + 
+  scale_y_continuous(quote(ft ^ 2), breaks = c(0, 50000, 100000, 150000, 200000), labels = c("0", "50k", "100k", "150k", "200k")) +
+  xlab(label = NULL) +
+  theme_minimal() + 
+  theme(legend.position = "none", axis.title = element_text(family = "mono", color = "#666666", size = 4), axis.text = element_text(size = 4))
+
+```
 
 
 
