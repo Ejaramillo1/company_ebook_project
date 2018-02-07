@@ -5,6 +5,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 
 
@@ -13,45 +14,31 @@ my_packages <- c("tidyverse", "readxl", "lubridate")
 libraries(my_packages)
 
 
-BIE_BIE20180126152150 <- read_excel("C:/Users/pvelazquez/Google Drive/Sector Industrial en Tijuana/Bases de datos/INDICADORES_ECONOMICOS_DE_COYUNTURA/BIE_BIE20180126152150.xlsx", 
+datos <- read_excel("C:/Users/pvelazquez/Google Drive/Sector Industrial en Tijuana/Bases de datos/INDICADORES_ECONOMICOS_DE_COYUNTURA/BIE_BIE20180126152150.xlsx", 
                                     col_names = TRUE, skip = 1) %>%
-  filter(!is.na(.[,2]))
-
-
-datos <- BIE_BIE20180126152150 %>%
+  filter(!is.na(.[,2])) %>%
   rename_all(funs(str_to_lower(.) %>%
-                    str_replace(., "proyectos especiales > tablero de indicadores económicos > ", ""))) %>%
-  select(contains("construcción")) %>%
-  rename( "constr_orig" = "indicadores de producción > índice de volumen físico de la construcción original p2 / f2/ (índice base 2013=100)", 
-          "constr_calend" = "indicadores de producción > índice de volumen físico de la construcción original corregida por efectos de calendario f3/ (índice base 2013=100)", 
-          "constr_esta" = "indicadores de producción > índice de volumen físico de la construcción desestacionalizada f3/ (índice base 2013=100)", 
-          "constr_trend" = "indicadores de producción > índice de volumen físico de la construcción tendencia f3/ (índice base 2013=100)", 
-          "constr_cicl" = "indicadores de producción > índice de volumen físico de la construcción ciclo f3/ (puntos)") %>%
-  mutate(periodo = BIE_BIE20180126152150$Periodo,
-         day = "01") %>%
-  separate(periodo, into = c("year", "month"), sep = "\\/") %>%
-  mutate(fecha = as_date(paste0(year, month, day))) %>%
-  filter(fecha > "2007-01-01")
+                    str_replace(., "proyectos especiales > tablero de indicadores económicos > ", "") %>%
+                    str_replace(., "indicadores de producción > ", "") %>%
+                    str_replace(., "indicadores de demanda > ", "") %>%
+                    str_replace(., "indicadores del mercado laboral > ", "") %>%
+                    str_replace(., "indicadores de opinión > ", "") %>%
+                    str_replace(., "indicadores del sector externo > ", "") %>%
+                    str_replace(., "indicadores del sector externo > ", "") %>%
+                    str_replace(., "indicadores del mercado financiero > ", "") %>%
+                    str_replace(., "indicadores de eua > ", "") %>%
+                    str_replace(., "([a-z0-9]+\\s?\\/.+)", "")%>%
+                    str_trim() %>%
+                    str_replace(., "í", "i") %>%
+                    str_replace(., "é", "e") %>%
+                    str_replace(., "ó", "o"))) %>%
+  separate(periodo , into = c("year", "month"), sep = "\\/") %>%
+  mutate(day = "01", 
+         periodo = ymd(as_date(paste0(year, month, day))))
 
 
-datos2 <- BIE_BIE20180126152150 %>%
-  rename_all(funs(str_to_lower(.) %>%
-                    str_replace(., "proyectos especiales > tablero de indicadores económicos > ", ""))) %>%
-  select(contains("precios al consumidor")) %>%
-  rename("inpc" = "indicadores de precios precios al consumidor f6/ (base segunda quincena de diciembre 2010 = 100)",
-         "inpc_sub" = "indicadores de precios precios al consumidor subyacente f6/ (base segunda quincena de diciembre 2010 = 100)") %>%
-  mutate(periodo = BIE_BIE20180126152150$Periodo,
-         day = "01") %>%
-  separate(periodo, into = c("year", "month"), sep = "\\/") %>%
-  mutate(fecha = as_date(paste0(year, month, day)),
-         inflacion  = (inpc/lag(inpc, 1) -1)*100) %>%
-  filter(fecha > "2007-01-01")
-
-
-
-
-
-
+propiedades_tijuana <- read_csv("propiedades_tijuana.csv", 
+    na = "null")
 ```
 
 
@@ -63,14 +50,24 @@ El comportamiento de los indicadores más relevantes para el sector de la constr
 Se observa así mismo que la inflación mensual medida a través del INPC(Índice Nacional de Precios al Consumidor) sigue una tendencia incremental. Principalmente en los meses de Octubre, Noviembre y Diciembre.
 
 
-```{r fig.height=2, fig.width=3}
+```{r}
 
 datos %>%
-  ggplot(aes(fecha, constr_calend)) + 
+  select(periodo, "indice de volumen físico de la construccion ciclo", `indicador global de la actividad economica original corregida por efectos de calendario`, `indicador global de la actividad economica desestacionalizada`, "tendencia del empleo en las manufacturas original", `indice de volumen físico de la construccion tendencia`, `indicadores ciclos adelantado`, `indicadores de precios precios al consumidor`) %>%
+  rename("constr" = "indice de volumen físico de la construccion ciclo",
+         "IGAE" = "indicador global de la actividad economica original corregida por efectos de calendario",
+         "manufact" = "tendencia del empleo en las manufacturas original",
+         "adelantado" = "indicadores ciclos adelantado",
+         "inpc" = "indicadores de precios precios al consumidor") %>%
+  mutate(infl = 100*(inpc - lag(inpc,1))/ lag(inpc,1)) %>%
+  gather(indicador, valor, c("constr", "IGAE", "manufact", "adelantado", "infl")) %>%
+  filter(periodo > "2010-01-01") %>%
+  ggplot(aes(periodo,  y = valor)) +
   geom_line(colour = "#4f2584", size = 0.2) + 
-  geom_smooth(method = "loess", size = 0.2) +
+  geom_smooth(method = "loess", size = 0.2) + 
+  facet_grid(indicador ~ .  , scales = "free_y") + 
   theme_minimal() + 
-  ggtitle("Índice del volumen físico de la construcción") +
+  ggtitle("Indicadores de coyuntura") +
   xlab(label = NULL) +
   ylab(label = "Índice") + 
   theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 5)) +
@@ -80,10 +77,10 @@ datos %>%
 
 
 
-```{r fig.height=2, fig.width=3}
+```{r include=FALSE}
 
 datos %>% 
-  ggplot(aes(fecha, constr_cicl)) + 
+  ggplot(aes(periodo, `indice de volumen físico de la construccion ciclo`)) + 
   geom_line(colour = "#4f2584", size = 0.2) +
   geom_smooth(method = "loess", size = 0.2) +
   theme_minimal() +
@@ -97,10 +94,14 @@ datos %>%
 ```
 
 
-```{r fig.height=2, fig.width=3}
+```{r include=FALSE}
 
-datos2 %>%
-  ggplot(aes(fecha, inflacion)) + 
+datos %>%
+  select(periodo, `indicadores de precios precios al consumidor`) %>%
+  rename("inpc" = `indicadores de precios precios al consumidor`) %>%
+  mutate(inflacion = 100*(inpc - lag(inpc,1))/ lag(inpc,1)) %>%
+  filter(periodo > "2006-01-01") %>%
+  ggplot(aes(periodo, inflacion)) + 
   geom_line(colour = "#4f2584", size = 0.2) + 
   geom_smooth(method = "loess", size = 0.2) + 
   theme_minimal() +
@@ -112,8 +113,6 @@ datos2 %>%
 
 
 ```
-
-
 
 ## Infraestructura comercial de México
 
@@ -131,20 +130,115 @@ doing_db %>%
   ggplot(aes(x = reorder(Economy, -dias), y = dias)) + 
   geom_col(aes(fill = -dias)) + 
   coord_flip() +
-  xlab(label = "Número de días") + 
-  ylab(label = "País") + 
+  xlab(label = NULL) + 
+  ylab(label = NULL) + 
   ggtitle("Numero de días para abrir un negocio") +
   theme_minimal() + 
-  theme(legend.position = "none")
+  theme(legend.position = "none", axis.title = element_text(size = 10, family = "mono"), axis.text = element_text(size = 7, face = "bold")) + 
+  theme(plot.title = element_text(size = 12, family = "mono", face = "bold", color = "#666666"))
+
 ```
+
+### Posición global en el ranking global Doing Business
+
+```{r}
+doing_db %>%
+  select("DTF global (DB17-18 methodology)", Economy) %>%
+  rename("DTF" = "DTF global (DB17-18 methodology)") %>%
+  ggplot(aes(x = reorder(Economy, DTF), y = DTF)) + 
+  geom_col(aes(fill = DTF)) + 
+  coord_flip() + 
+  xlab(label = NULL) + 
+  ylab(label = NULL) + 
+  ggtitle("Doing Business position (Comparable countries)") + 
+  theme_minimal() + 
+  theme(legend.position = "none", axis.text = element_text(size = 8, face = "bold", family = "mono"), title = element_text(size = 12, family = "mono", face = "bold", color = "#666666"))
+
+```
+
+### Costo de exportar
 
 ```{r}
 
+doing_db %>%
+  filter(!Economy %in% c("Poland", "Czech Republic")) %>%
+  select("Trading across Borders - Cost to export: Documentary compliance (USD) (DB16-18 methodology)", Economy) %>%
+  rename("Export" = "Trading across Borders - Cost to export: Documentary compliance (USD) (DB16-18 methodology)") %>%
+  ggplot(aes(x = reorder(Economy, -Export), y = Export)) + 
+  geom_col(aes(fill = -Export)) + 
+  scale_color_gradient(low = "white", high = "black") +
+  xlab(label = NULL) +
+  ylab(label = NULL) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text = element_text(size = 8, face = "bold", family = "mono"))
 
-propiedades_tijuana <- read_csv("propiedades_tijuana.csv", 
-    na = "null")
+
+```
+
+### Costo de importar
+
+```{r}
+doing_db %>%
+  filter(!Economy %in% c("Poland", "Czech Republic")) %>%
+  select("Trading across Borders - Cost to import: Border compliance (USD) (DB16-18 methodology)", Economy) %>%
+  rename("import" = "Trading across Borders - Cost to import: Border compliance (USD) (DB16-18 methodology)") %>%
+  ggplot(aes(x = reorder(Economy, -import), y = import)) + 
+  geom_col(aes(fill = -import)) + 
+  coord_flip() +
+  ylab(label = NULL) + 
+  xlab(label = NULL) +
+  theme_minimal() + 
+  theme(legend.position = "none")
 
 
+
+```
+
+
+# Propiedades para uso industrial en Tijuana
+
+
+## Propiedades disponibles por submercado en Tijuana
+
+```{r}
+propiedades_tijuana %>%
+  filter(!estado %in% c("construccion", "planeado")) %>%
+  distinct() %>%
+  ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) + 
+  geom_col(aes(fill = espacio_disponible)) + 
+  facet_grid(. ~ submercado) +
+  coord_flip() + 
+  ggtitle("Naves disponibles por submercado en Tijuana") + 
+  scale_y_continuous(quote(ft ^ 2), breaks = c(0, 50000, 100000, 150000, 200000), labels = c("0", "50k", "100k", "150k", "200k")) +
+  xlab(label = NULL) +
+  theme_minimal() + 
+  theme(strip.text.x = element_text(size = 5),legend.position = "none", axis.title = element_text(family = "mono", color = "#666666", size = 3), axis.text = element_text(size = 4, family = "mono", color = "#666666"))
+
+```
+
+### Disponibilidad por submercado en Tijuana
+
+```{r results='asis'}
+library(xtable)
+
+tabla <- propiedades_tijuana %>%
+  filter(!estado %in% c("construccion", "planeado")) %>% 
+  distinct() %>%
+  mutate(area_total = sum(espacio_disponible)) %>%
+  group_by(submercado) %>%
+  mutate(area_submercado = sum(espacio_disponible)) %>%
+  ungroup() %>%
+  mutate(percent = area_submercado / area_total, submercado) %>%
+  group_by(submercado, percent) %>%
+  summarise()
+
+xtable(tabla)
+
+```
+
+
+```{r}
 propiedades_tijuana %>%
   filter(!estado %in% c("construccion", "planeado")) %>% 
   distinct() %>%
@@ -157,15 +251,17 @@ propiedades_tijuana %>%
   summarise() %>%
   ggplot(aes(x = reorder(submercado, -percent), y = percent)) + geom_col(aes(fill = -percent)) + 
     coord_flip() +
-  ggtitle("Disponibilidad por submercado en Tijuana ft^2") +
+  ggtitle("Disponibilidad por submercado en Tijuana porcentaje del total") +
   ylab(label = NULL) +
-  xlab(label = "Sub-mercado") +
+  xlab(label = NULL) +
   theme_minimal() + 
-  theme(legend.position = "none")
-
-
+  theme(legend.position = "none", axis.text = element_text(size = 9, face = "bold"), axis.title = element_text(size = 9, family = "mono"), plot.title = element_text(size = 10, family = "mono", face = "bold", color = "#666666"))
 ```
 
+
+
+
+### Disponibilidad submercado Insurgentes-El Águila
 
 ```{r}
 
@@ -176,14 +272,14 @@ propiedades_tijuana %>%
   geom_col(aes(fill = -espacio_disponible)) + 
   coord_flip() +
   ggtitle("Naves disponibles en sub-mercado Insurgentes-El Aguila") + 
-  xlab(label = "Nombre de la Nave") +
-  ylab(label = "Tamaño en pies Cuadrados" ) + 
+  xlab(label = NULL) +
+  ylab(label = NULL) + 
   theme_minimal() + 
-  theme(legend.position = "none")
+  theme(legend.position = "none", axis.text = element_text(size = 9, face = "bold"), axis.title = element_text(size = 9, family = "mono"), plot.title = element_text(size = 11, family = "mono", face = "bold", color = "#666666"))
 
 ```
 
-
+### Disponibilidad submercado La Mesa-Vía Rápida
 
 ```{r}
 
@@ -192,18 +288,17 @@ propiedades_tijuana %>%
   select(nombre, espacio_disponible, precio_de_arrendamiento, corretaje_representativo, clase) %>%
   distinct() %>%
   ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) + 
-  geom_col(aes(fill = -espacio_disponible)) + 
+  geom_col(aes(fill = -espacio_disponible)) +
+  ylab(label = NULL) + 
+  xlab(label = NULL) + 
   coord_flip() + 
   ggtitle("Naves disponibles en sub-mercado La Mesa-Via Rápida") + 
   scale_y_continuous(breaks = c(0, 15000 ,30000, 45000, 75000, 100000, 125000, 150000), labels = c("0", "15k", "30k", "45k", "75k", "100k", "125k", "150k")) + 
-  xlab(label = "Nombre de la nave") +
   theme_minimal() + 
-  theme(legend.position = "none")
-
+  theme(legend.position = "none", axis.text = element_text(size = 9, face = "bold"), plot.title = element_text(size = 12, family = "mono", face = "bold", color = "#666666"))
 ```
 
-
-
+### Disponibilidad submercado El Florido-Boulevard 2000
 
 ```{r}
 propiedades_tijuana %>%
@@ -211,30 +306,21 @@ propiedades_tijuana %>%
   distinct() %>%
   ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) + 
   geom_col(aes(fill = -espacio_disponible)) +
-  coord_flip() + 
-  ggtitle("Naves disponibles en submrecado El florido-Boulevard 2000") + 
-  xlab(label = "Nombre de la nave") + 
-  scale_y_continuous(quote(ft ^ 2), labels = c("0", "50k", "100k", "150k", "200k")) +
-  theme_minimal() + 
-  theme(legend.position = "none")
-
-```
-
-```{r}
-propiedades_tijuana %>%
-  filter(!estado %in% c("construccion", "planeado")) %>%
-  distinct() %>%
-  ggplot(aes(x = reorder(nombre, -espacio_disponible), y = espacio_disponible)) + 
-  geom_col(aes(fill = espacio_disponible)) + 
-  facet_grid(~submercado) + 
-  coord_flip() + 
-  ggtitle("Naves disponibles por submercado en Tijuana") + 
-  scale_y_continuous(quote(ft ^ 2), breaks = c(0, 50000, 100000, 150000, 200000), labels = c("0", "50k", "100k", "150k", "200k")) +
+  coord_flip() +
+  ggtitle("Disponibilidad El Florido-Boulevard 2000") + 
   xlab(label = NULL) +
+  ylab(label = NULL) +
+  scale_y_continuous(labels = c("0", "50k", "100k", "150k", "200k")) +
   theme_minimal() + 
-  theme(legend.position = "none", axis.title = element_text(family = "mono", color = "#666666", size = 4), axis.text = element_text(size = 4))
+  theme(legend.position = "none", axis.text = element_text(size = 9, face = "bold"), plot.title = element_text(size = 11, family = "mono", face = "bold", color = "#666666"))
 
 ```
+
+
+
+
+
+
 
 
 
