@@ -53,15 +53,15 @@ Se observa así mismo que la inflación mensual medida a través del INPC(Índic
 ```{r}
 
 datos %>%
-  select(periodo, "indice de volumen físico de la construccion ciclo", `indicador global de la actividad economica original corregida por efectos de calendario`, `indicador global de la actividad economica desestacionalizada`, "tendencia del empleo en las manufacturas original", `indice de volumen físico de la construccion tendencia`, `indicadores ciclos adelantado`, `indicadores de precios precios al consumidor`) %>%
-  rename("constr" = "indice de volumen físico de la construccion ciclo",
+  select(periodo, "indice de volumen físico de la construccion ciclo", `indicador global de la actividad economica original corregida por efectos de calendario`, `indicador global de la actividad economica desestacionalizada`, "tendencia del empleo en las manufacturas original", `indice de volumen físico de la construccion tendencia`, `indicadores ciclos adelantado`, `indicadores de precios precios al consumidor`, `indice de volumen físico de la construccion original corregida por efectos de calendario`) %>%
+  rename("constr" = `indice de volumen físico de la construccion original corregida por efectos de calendario`,
          "IGAE" = "indicador global de la actividad economica original corregida por efectos de calendario",
          "manufact" = "tendencia del empleo en las manufacturas original",
          "adelantado" = "indicadores ciclos adelantado",
          "inpc" = "indicadores de precios precios al consumidor") %>%
   mutate(infl = 100*(inpc - lag(inpc,1))/ lag(inpc,1)) %>%
-  gather(indicador, valor, c("constr", "IGAE", "manufact", "adelantado", "infl")) %>%
-  filter(periodo > "2010-01-01") %>%
+  gather(indicador, valor, c("constr","manufact","infl")) %>%
+  filter(periodo > "2014-01-01") %>%
   ggplot(aes(periodo,  y = valor)) +
   geom_line(colour = "#4f2584", size = 0.2) + 
   geom_smooth(method = "loess", size = 0.2) + 
@@ -70,8 +70,8 @@ datos %>%
   ggtitle("Indicadores de coyuntura") +
   xlab(label = NULL) +
   ylab(label = "Índice") + 
-  theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 5)) +
-  theme(axis.title = element_text(family = "mono", color = "#666666", size = 4), axis.text = element_text(size = 4))
+  theme(plot.title = element_text(family = "mono", color = "#666666", face = "bold", size = 11)) +
+  theme(axis.title = element_text(family = "mono", color = "#666666", size = 9), axis.text = element_text(size = 9))
   
 ```
 
